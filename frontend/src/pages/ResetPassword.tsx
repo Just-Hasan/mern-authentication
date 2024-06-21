@@ -12,15 +12,13 @@ import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import Container from "@mui/material/Container";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
+import axios from "axios";
+import { useNavigate, useParams } from "react-router-dom";
+import { Link as LinkRouter } from "react-router-dom";
 
-function Copyright(props: any) {
+function Copyright() {
   return (
-    <Typography
-      variant="body2"
-      color="text.secondary"
-      align="center"
-      {...props}
-    >
+    <Typography variant="body2" color="text.secondary" align="center">
       {"Copyright © "}
       <Link color="inherit" href="https://mui.com/">
         Your Website
@@ -34,16 +32,46 @@ function Copyright(props: any) {
 // TODO remove, this demo shouldn't need to reset the theme.
 const defaultTheme = createTheme();
 
-export default function SignUp() {
+type ResetPassword = {
+  password: FormDataEntryValue | null;
+  confirmPassword: FormDataEntryValue | null;
+};
+
+export default function ResetPassword() {
+  const navigate = useNavigate();
+  const { token } = useParams();
+  const reset = React.useCallback(
+    async function (userData: ResetPassword) {
+      try {
+        const { data } = await axios.post(
+          `http://localhost:3000/auth/reset-password/${token}`,
+          userData
+        );
+        console.log(data);
+
+        if (data.status === true) {
+          navigate("/login");
+        }
+      } catch (error) {
+        // console.log(error.message);
+      }
+    },
+    [navigate]
+  );
+
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const data = new FormData(event.currentTarget);
-    console.log({
-      firstName: data.get("firstName"),
-      lastName: data.get("lastName"),
-      email: data.get("email"),
+    const userData = {
       password: data.get("password"),
-    });
+      confirmPassword: data.get("confirm-password"),
+    };
+    if (userData.password !== userData.confirmPassword) {
+      console.log("it ain't even the same shit nigga");
+    } else {
+      reset(userData);
+      console.log(userData);
+    }
   };
 
   return (
@@ -62,7 +90,7 @@ export default function SignUp() {
             {/* <LockOutlinedIcon /> */}
           </Avatar>
           <Typography component="h1" variant="h5">
-            Sign up
+            Reset Password
           </Typography>
           <Box
             component="form"
@@ -71,37 +99,6 @@ export default function SignUp() {
             sx={{ mt: 3 }}
           >
             <Grid container spacing={2}>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  autoComplete="given-name"
-                  name="firstName"
-                  required
-                  fullWidth
-                  id="firstName"
-                  label="First Name"
-                  autoFocus
-                />
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  required
-                  fullWidth
-                  id="lastName"
-                  label="Last Name"
-                  name="lastName"
-                  autoComplete="family-name"
-                />
-              </Grid>
-              <Grid item xs={12}>
-                <TextField
-                  required
-                  fullWidth
-                  id="email"
-                  label="Email Address"
-                  name="email"
-                  autoComplete="email"
-                />
-              </Grid>
               <Grid item xs={12}>
                 <TextField
                   required
@@ -114,13 +111,17 @@ export default function SignUp() {
                 />
               </Grid>
               <Grid item xs={12}>
-                <FormControlLabel
-                  control={
-                    <Checkbox value="allowExtraEmails" color="primary" />
-                  }
-                  label="I want to receive inspiration, marketing promotions and updates via email."
+                <TextField
+                  required
+                  fullWidth
+                  name="confirm-password"
+                  label="Confirm password"
+                  type="password"
+                  id="confirm-password"
+                  autoComplete="confirm-password"
                 />
               </Grid>
+              <Grid item xs={12}></Grid>
             </Grid>
             <Button
               type="submit"
@@ -128,18 +129,11 @@ export default function SignUp() {
               variant="contained"
               sx={{ mt: 3, mb: 2 }}
             >
-              Sign Up
+              Reset
             </Button>
-            <Grid container justifyContent="flex-end">
-              <Grid item>
-                <Link href="#" variant="body2">
-                  Already have an account? Sign in
-                </Link>
-              </Grid>
-            </Grid>
           </Box>
         </Box>
-        <Copyright sx={{ mt: 5 }} />
+        <Copyright />
       </Container>
     </ThemeProvider>
   );

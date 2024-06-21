@@ -1,18 +1,22 @@
 import mongoose from "mongoose";
 const UserSchema = new mongoose.Schema({
-  firstname: {
+  firstName: {
     type: String,
     require: true,
-    unique: true,
   },
-  lastname: {
+  lastName: {
     type: String,
     require: true,
-    unique: true,
   },
   email: {
     type: String,
     required: true,
+    validate: {
+      validator: (receiveEmail) => {
+        return /@gmail\.com$/.test(receiveEmail);
+      },
+      message: "Email must contain @gmail.com",
+    },
   },
   password: {
     type: String,
