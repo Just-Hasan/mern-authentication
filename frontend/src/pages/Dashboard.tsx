@@ -11,7 +11,7 @@ const Dashboard = () => {
       });
       console.log(data);
       if (!data.status) {
-        navigate("/");
+        navigate("/login");
       }
     }
     isVerified();

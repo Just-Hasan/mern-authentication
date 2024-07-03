@@ -1,19 +1,33 @@
 import dotenv from "dotenv";
 import express from "express";
 import { User } from "../models/Users.js";
-const userAuthRouter = express.Router();
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import nodemailer from "nodemailer";
 
+// Load environment variables from .env file
 dotenv.config();
+
+// Create a new Express Router instance
+const userAuthRouter = express.Router();
+
+/**
+ * Route to handle user signup.
+ * @route POST /signup
+ * @param {string} req.body.email - User's email address.
+ * @param {string} req.body.password - User's password.
+ * @param {string} req.body.firstName - User's first name.
+ * @param {string} req.body.lastName - User's last name.
+ * @returns {Object} Response object with status and message.
+ * @library bcrypt
+ * @library express
+ */
 userAuthRouter.post("/signup", async function (req, res) {
-  console.log(req.body);
   const { email, password, firstName, lastName } = req.body;
   const user = await User.findOne({ email: email });
 
   if (user) {
-    res.json({ message: "email already existed" });
+    res.json({ message: "Email already exists" });
   } else {
     const hashPassword = await bcrypt.hash(password, 10);
     const newUser = new User({
@@ -24,40 +38,57 @@ userAuthRouter.post("/signup", async function (req, res) {
     });
 
     await newUser.save();
-    return res.json({ status: true, message: "new user created" });
+    return res.json({ status: true, message: "New user created" });
   }
-
-  // await User.save({ email:"hasanawdwad"}); //prettier-ignore
 });
 
+/**
+ * Route to handle user login.
+ * @route POST /login
+ * @param {string} req.body.email - User's email address.
+ * @param {string} req.body.password - User's password.
+ * @returns {Object} Response object with status and message.
+ * @library bcrypt
+ * @library jwt
+ * @library express
+ */
 userAuthRouter.post("/login", async function (req, res) {
   const { email, password } = req.body;
   const user = await User.findOne({ email });
   if (!user) {
-    return res.json({ message: "user is not registered" });
+    return res.json({ message: "User is not registered" });
   }
 
   const validPassword = await bcrypt.compare(password, user.password);
   if (!validPassword) {
-    return res.json({ message: "password is incorrect" });
+    return res.json({ message: "Password is incorrect" });
   } else {
-    // token generation
+    // Token generation
     const token = jwt.sign({ username: user.username }, process.env.JWT_KEY, {
       expiresIn: "1h",
     });
-    res.cookie("token", token, { httpOnly: true, maxAge: 360_000 });
-    return res.json({ status: true, message: "login successfull" });
+    res.cookie("token", token, { httpOnly: true, maxAge: 360000 });
+    return res.json({ status: true, message: "Login successful" });
   }
 });
 
+/**
+ * Route to handle forgot password functionality.
+ * @route POST /forgot-password
+ * @param {string} req.body.email - User's email address.
+ * @returns {Object} Response object with status and message.
+ * @library nodemailer
+ * @library jwt
+ * @library express
+ */
 userAuthRouter.post("/forgot-password", async function (req, res) {
   const { email } = req.body;
   try {
     const isEmailExist = await User.findOne({ email });
     if (!isEmailExist) {
-      return res.json({ message: "user is not registered" });
+      return res.json({ message: "User is not registered" });
     } else {
-      ////////[using nodemailer to send reset password link]
+      // Using nodemailer to send reset password link
       const token = jwt.sign({ id: isEmailExist._id }, process.env.JWT_KEY, {
         expiresIn: "5m",
       });
@@ -80,21 +111,31 @@ userAuthRouter.post("/forgot-password", async function (req, res) {
         if (error) {
           res.json({
             status: true,
-            message: "error sending email",
+            message: "Error sending email",
           });
         } else {
           return res.json({
             status: true,
-            message: "a reset link has been sent to your email",
+            message: "A reset link has been sent to your email",
           });
         }
       });
     }
   } catch (error) {
-    console.log(err);
+    console.log(error);
   }
 });
 
+/**
+ * Route to handle reset password functionality.
+ * @route POST /reset-password/:token
+ * @param {string} req.params.token - JWT token for user verification.
+ * @param {string} req.body.password - New user password.
+ * @returns {Object} Response object with status and message.
+ * @library bcrypt
+ * @library jwt
+ * @library express
+ */
 userAuthRouter.post("/reset-password/:token", async function (req, res) {
   const token = req.params.token;
   const { password } = req.body;
@@ -107,15 +148,24 @@ userAuthRouter.post("/reset-password/:token", async function (req, res) {
     return res.json({ status: true, message: "Password updated" });
   } catch (error) {
     console.log(error);
-    return res.json({ message: "invalid token" });
+    return res.json({ message: "Invalid token" });
   }
 });
 
+/**
+ * Middleware to verify user authentication based on JWT token.
+ * @function verifyUser
+ * @param {Object} req - Express request object.
+ * @param {Object} res - Express response object.
+ * @param {Function} next - Express next middleware function.
+ * @library jwt
+ * @library express
+ */
 const verifyUser = async function (req, res, next) {
   try {
     const token = req.cookies.token;
     console.log(token);
-    if (!token) return res.json({ status: false, message: "no token" });
+    if (!token) return res.json({ status: false, message: "No token" });
     const decoded = await jwt.verify(token, process.env.JWT_KEY);
     req.user = decoded;
     next();
@@ -124,12 +174,27 @@ const verifyUser = async function (req, res, next) {
   }
 };
 
+/**
+ * Route to verify user authentication.
+ * @route GET /verify
+ * @middleware verifyUser
+ * @returns {Object} Response object with status and message.
+ * @library express
+ */
 userAuthRouter.get("/verify", verifyUser, function (req, res) {
-  return res.json({ status: true, message: "authorized" });
+  return res.json({ status: true, message: "Authorized" });
 });
 
+/**
+ * Route to handle user logout.
+ * @route GET /logout
+ * @returns {Object} Response object with status and message.
+ * @library express
+ */
 userAuthRouter.get("/logout", async function (req, res) {
   res.clearCookie("token");
   return res.json({ status: true });
 });
+
+// Export the user authentication router
 export { userAuthRouter };
