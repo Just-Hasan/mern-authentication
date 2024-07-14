@@ -22,6 +22,7 @@ const userAuthRouter = express.Router();
  * @library bcrypt
  * @library express
  */
+
 userAuthRouter.post("/signup", async function (req, res) {
   const { email, password, firstName, lastName } = req.body;
   const user = await User.findOne({ email: email });
