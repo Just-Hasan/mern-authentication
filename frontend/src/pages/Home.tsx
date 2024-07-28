@@ -13,7 +13,7 @@ const Home = () => {
     getUser();
   }, []);
 
-  // axios.defaults.withCredentials = true;
+  axios.defaults.withCredentials = true;
   async function handleLogout() {
     const { data } = await axios.get("http://localhost:3000/auth/logout");
     if (data.status) {
