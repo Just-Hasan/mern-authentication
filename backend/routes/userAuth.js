@@ -141,7 +141,7 @@ userAuthRouter.post("/reset-password/:token", async function (req, res) {
   const token = req.params.token;
   const { password } = req.body;
   try {
-    const decoded = await jwt.verify(token, process.env.JWT_KEY);
+    const decoded = jwt.verify(token, process.env.JWT_KEY);
     console.log(decoded);
     const id = decoded.id;
     const hashPassword = await bcrypt.hash(password, 10);
@@ -167,7 +167,7 @@ const verifyUser = async function (req, res, next) {
     const token = req.cookies.token;
     console.log(token);
     if (!token) return res.json({ status: false, message: "No token" });
-    const decoded = await jwt.verify(token, process.env.JWT_KEY);
+    const decoded = jwt.verify(token, process.env.JWT_KEY);
     req.user = decoded;
     next();
   } catch (error) {

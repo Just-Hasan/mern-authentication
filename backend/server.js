@@ -6,26 +6,26 @@ import { User } from "./models/Users.js";
 import cookieParser from "cookie-parser";
 
 const app = express();
-
 /**
  * Middleware to parse cookies from the request headers.
  */
-app.use(cookieParser());
 
+app.use(cookieParser());
 /**
  * Middleware to enable Cross-Origin Resource Sharing (CORS).
  * This allows the API to be consumed by the frontend.
  */
+
 app.use(
   cors({
     origin: ["http://localhost:5173"],
     credentials: true,
   })
 );
-
 /**
  * Middleware to parse incoming JSON requests.
  */
+
 app.use(express.json());
 
 /**
@@ -38,7 +38,7 @@ app.use("/auth", userAuthRouter);
  * @route GET /
  * @returns {Array} List of users
  */
-app.get("/", async function (req, res) {
+app.get("/", async function (_, res) {
   try {
     const result = await User.find();
     res.json(result);
