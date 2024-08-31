@@ -43,7 +43,7 @@ type SignUpType = {
 };
 
 export default function Login() {
-  // what's this used for?
+  // what's this used for? to make every axios request to include credentials such as cookies
   Axios.defaults.withCredentials = true;
 
   const navigate = useNavigate();

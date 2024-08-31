@@ -4,7 +4,7 @@ import { Link, useNavigate } from "react-router-dom";
 const Home = () => {
   const navigate = useNavigate();
 
-  // axios.defaults.withCredentials = true;
+  axios.defaults.withCredentials = true;
   async function handleLogout() {
     const { data } = await axios.get("http://localhost:3000/auth/logout");
     if (data.status) {
