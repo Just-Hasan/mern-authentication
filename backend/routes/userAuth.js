@@ -61,6 +61,7 @@ userAuthRouter.post("/login", async function (req, res) {
   }
 
   const validPassword = await bcrypt.compare(password, user.password);
+
   if (!validPassword) {
     return res.json({ message: "Password is incorrect" });
   } else {
